@@ -9,7 +9,10 @@ import cc.tonyhook.berry.backend.entity.security.Permission;
 
 public interface PermissionRepository extends ListCrudRepository<Permission, Integer>, PagingAndSortingRepository<Permission, Integer> {
 
+    List<Permission> findByResourceTypeAndResourceId(String resourceType, Integer resourceId);
+    List<Permission> findByResourceTypeAndResourceIdIsNull(String resourceType);
     List<Permission> findByResourceTypeAndResourceIdAndRoleId(String resourceType, Integer resourceId, Integer roleId);
     List<Permission> deleteByResourceTypeAndResourceId(String resourceType, Integer resourceId);
+    List<Permission> deleteByRoleId(Integer roleId);
 
 }
