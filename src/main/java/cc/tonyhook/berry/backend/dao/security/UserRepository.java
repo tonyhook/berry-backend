@@ -7,4 +7,6 @@ import cc.tonyhook.berry.backend.entity.security.User;
 
 public interface UserRepository extends ListCrudRepository<User, Integer>, PagingAndSortingRepository<User, Integer> {
 
+    User findByUsername(String username);
+
 }
