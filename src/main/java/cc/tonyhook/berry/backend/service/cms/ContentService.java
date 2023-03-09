@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -40,9 +42,26 @@ public class ContentService {
         return contentList;
     }
 
+    @PreAuthorize("hasPermission(#column.id, 'column', 'r')")
+    public Page<Content> getContentList(Column column, Boolean disabled, Pageable pageable) {
+        Page<Content> contentList = null;
+        if (column != null) {
+            contentList = contentRepository.findByColumnAndDisabledOrderBySequence(column, disabled, pageable);
+        }
+
+        return contentList;
+    }
+
     @PreAuthorize("hasPermission(#id, 'content', 'r')")
     public Content getContent(Integer id) {
         Content content = contentRepository.findById(id).orElse(null);
+
+        return content;
+    }
+
+    @PreAuthorize("hasPermission(#id, 'content', 'r')")
+    public Content getContent(Integer id, Boolean disabled) {
+        Content content = contentRepository.findByIdAndDisabled(id, disabled);
 
         return content;
     }

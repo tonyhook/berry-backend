@@ -36,9 +36,22 @@ public class TagService {
         return tagPage;
     }
 
+    public Page<Tag> getTagList(String type, Boolean disabled, Pageable pageable) {
+        Page<Tag> tagPage = tagRepository.findByTypeAndDisabled(type, disabled, pageable);
+
+        return tagPage;
+    }
+
     @PreAuthorize("hasPermission(#id, 'tag', 'r')")
     public Tag getTag(Integer id) {
         Tag tag = tagRepository.findById(id).orElse(null);
+
+        return tag;
+    }
+
+    @PreAuthorize("hasPermission(#id, 'tag', 'r')")
+    public Tag getTag(Integer id, Boolean disabled) {
+        Tag tag = tagRepository.findByIdAndDisabled(id, disabled);
 
         return tag;
     }

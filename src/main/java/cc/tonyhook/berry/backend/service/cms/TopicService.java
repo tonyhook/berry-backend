@@ -36,9 +36,29 @@ public class TopicService {
         return topicPage;
     }
 
+    public Page<Topic> getTopicList(String type, Boolean disabled, Pageable pageable) {
+        Page<Topic> topicPage = topicRepository.findByTypeAndDisabled(type, disabled, pageable);
+
+        return topicPage;
+    }
+
     @PreAuthorize("hasPermission(#id, 'topic', 'r')")
     public Topic getTopic(Integer id) {
         Topic topic = topicRepository.findById(id).orElse(null);
+
+        return topic;
+    }
+
+    @PreAuthorize("hasPermission(#id, 'topic', 'r')")
+    public Topic getTopic(Integer id, Boolean disabled) {
+        Topic topic = topicRepository.findByIdAndDisabled(id, disabled);
+
+        return topic;
+    }
+
+    @PreAuthorize("hasPermission(#id, 'topic', 'r')")
+    public Topic getTopic(String name, Boolean disabled) {
+        Topic topic = topicRepository.findByNameAndDisabled(name, disabled);
 
         return topic;
     }

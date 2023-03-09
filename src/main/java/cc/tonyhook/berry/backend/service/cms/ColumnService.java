@@ -16,6 +16,7 @@ import cc.tonyhook.berry.backend.dao.cms.ContentRepository;
 import cc.tonyhook.berry.backend.dao.security.PermissionRepository;
 import cc.tonyhook.berry.backend.entity.cms.Column;
 import cc.tonyhook.berry.backend.entity.cms.Content;
+import cc.tonyhook.berry.backend.entity.cms.Topic;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -49,9 +50,44 @@ public class ColumnService {
         return columnList;
     }
 
+    @PreAuthorize("hasPermission(#columnId, 'column', 'r')")
+    @PostFilter("hasPermission(filterObject, 'r')")
+    public List<Column> getColumnList(Column column, Boolean disabled) {
+        List<Column> columnList;
+
+        if (column == null) {
+            columnList = columnRepository.findByParentIdIsNullAndDisabledOrderBySequence(disabled);
+        } else {
+            columnList = columnRepository.findByParentIdAndDisabledOrderBySequence(column.getId(), disabled);
+        }
+
+        return columnList;
+    }
+
+    @PostFilter("hasPermission(filterObject, 'r')")
+    public List<Column> getColumnList(Topic topic, Boolean disabled) {
+        List<Column> columnList = columnRepository.findByTopicAndDisabledOrderByUpdateTimeDesc(topic, disabled);
+
+        return columnList;
+    }
+
     @PreAuthorize("hasPermission(#id, 'column', 'r')")
     public Column getColumn(Integer id) {
         Column column = columnRepository.findById(id).orElse(null);
+
+        return column;
+    }
+
+    @PreAuthorize("hasPermission(#id, 'column', 'r')")
+    public Column getColumn(Integer id, Boolean disabled) {
+        Column column = columnRepository.findByIdAndDisabled(id, disabled);
+
+        return column;
+    }
+
+    @PreAuthorize("hasPermission(#id, 'column', 'r')")
+    public Column getColumn(String name, Boolean disabled) {
+        Column column = columnRepository.findByNameAndDisabled(name, disabled);
 
         return column;
     }

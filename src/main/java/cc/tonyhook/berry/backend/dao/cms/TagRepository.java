@@ -10,5 +10,7 @@ import cc.tonyhook.berry.backend.entity.cms.Tag;
 public interface TagRepository extends ListCrudRepository<Tag, Integer>, PagingAndSortingRepository<Tag, Integer> {
 
     Page<Tag> findByType(String type, Pageable pageable);
+    Page<Tag> findByTypeAndDisabled(String type, Boolean disabled, Pageable pageable);
+    Tag findByIdAndDisabled(Integer id, Boolean disabled);
 
 }

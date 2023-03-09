@@ -38,8 +38,20 @@ public class GalleryService {
         return galleryPage;
     }
 
+    public Page<Gallery> getGalleryList(String type, Boolean disabled, Pageable pageable) {
+        Page<Gallery> galleryPage = galleryRepository.findByTypeAndDisabled(type, disabled, pageable);
+
+        return galleryPage;
+    }
+
     public Page<Gallery> getGalleryList(Topic topic, Pageable pageable) {
         Page<Gallery> galleryPage = galleryRepository.findByTopic(topic, pageable);
+
+        return galleryPage;
+    }
+
+    public Page<Gallery> getGalleryList(Topic topic, Boolean disabled, Pageable pageable) {
+        Page<Gallery> galleryPage = galleryRepository.findByTopicAndDisabledOrderByUpdateTimeDesc(topic, disabled, pageable);
 
         return galleryPage;
     }
@@ -50,9 +62,22 @@ public class GalleryService {
         return galleryPage;
     }
 
+    public Page<Gallery> getGalleryList(Tag tag, Boolean disabled, Pageable pageable) {
+        Page<Gallery> galleryPage = galleryRepository.findByTagsContainsAndDisabledOrderByUpdateTimeDesc(tag, disabled, pageable);
+
+        return galleryPage;
+    }
+
     @PreAuthorize("hasPermission(#id, 'gallery', 'r')")
     public Gallery getGallery(Integer id) {
         Gallery gallery = galleryRepository.findById(id).orElse(null);
+
+        return gallery;
+    }
+
+    @PreAuthorize("hasPermission(#id, 'gallery', 'r')")
+    public Gallery getGallery(Integer id, Boolean disabled) {
+        Gallery gallery = galleryRepository.findByIdAndDisabled(id, disabled);
 
         return gallery;
     }

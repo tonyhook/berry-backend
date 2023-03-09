@@ -35,9 +35,23 @@ public class CarouselService {
         return carouselList;
     }
 
+    @PostFilter("hasPermission(filterObject, 'r')")
+    public List<Carousel> getCarouselList(String list, Boolean disabled) {
+        List<Carousel> carouselList = carouselRepository.findByListAndDisabledOrderBySequence(list, disabled);
+
+        return carouselList;
+    }
+
     @PreAuthorize("hasPermission(#id, 'carousel', 'r')")
     public Carousel getCarousel(Integer id) {
         Carousel carousel = carouselRepository.findById(id).orElse(null);
+
+        return carousel;
+    }
+
+    @PreAuthorize("hasPermission(#id, 'carousel', 'r')")
+    public Carousel getCarousel(Integer id, Boolean disabled) {
+        Carousel carousel = carouselRepository.findByIdAndDisabled(id, disabled);
 
         return carousel;
     }

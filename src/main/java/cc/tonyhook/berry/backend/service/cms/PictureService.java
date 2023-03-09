@@ -49,6 +49,13 @@ public class PictureService {
         return picture;
     }
 
+    @PreAuthorize("hasPermission(#id, 'picture', 'r')")
+    public Picture getPicture(Integer id, Boolean disabled) {
+        Picture picture = pictureRepository.findByIdAndDisabled(id, disabled);
+
+        return picture;
+    }
+
     @PreAuthorize("hasPermission(#newPicture, 'c')")
     public Picture addPicture(Picture newPicture) {
         newPicture.setCreateTime(new Timestamp(System.currentTimeMillis()));

@@ -10,5 +10,7 @@ import cc.tonyhook.berry.backend.entity.cms.Picture;
 public interface PictureRepository extends ListCrudRepository<Picture, Integer> {
 
     List<Picture> findByGalleryOrderBySequence(Gallery gallery);
+    List<Picture> findByGalleryAndDisabledOrderBySequence(Gallery gallery, Boolean disabled);
+    Picture findByIdAndDisabled(Integer id, Boolean disabled);
 
 }
