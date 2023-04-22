@@ -6,7 +6,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.TreeMap;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -20,13 +19,6 @@ import cc.tonyhook.berry.backend.service.shared.ParameterStringBuilder;
 @ConditionalOnProperty(prefix = "app.wechat", name = "provider", havingValue = "official")
 public class WechatProviderOfficial implements WechatProvider {
 
-    @Value("${app.wechat.appid}")
-    private String appid;
-    @Value("${app.wechat.secret}")
-    private String secret;
-    @Value("${app.wechat.message-token}")
-    private String messageToken;
-
     private String access_token = "";
     private long access_token_expire = 0L;
 
@@ -34,28 +26,13 @@ public class WechatProviderOfficial implements WechatProvider {
     private long jsapi_ticket_expire = 0L;
 
     @Override
-    public String getWechatAppid() {
-        return appid;
-    }
-
-    @Override
-    public String getWechatSecret() {
-        return secret;
-    }
-
-    @Override
-    public String getWechatMessageToken() {
-        return messageToken;
-    }
-
-    @Override
-    public String getWechatAccessToken(Boolean forceUpdate) {
+    public String getWechatAccessToken(String appid, String secret, Boolean forceUpdate) {
         long now = System.currentTimeMillis();
 
         if ((now > access_token_expire - 5 * 60 * 1000) || forceUpdate) {
             TreeMap<String, String> params = new TreeMap<>();
-            params.put("appid", getWechatAppid());
-            params.put("secret", getWechatSecret());
+            params.put("appid", appid);
+            params.put("secret", secret);
 
             try {
                 ObjectMapper mapper = new ObjectMapper();
@@ -91,12 +68,12 @@ public class WechatProviderOfficial implements WechatProvider {
     }
 
     @Override
-    public String getWechatConfig(String pageUrl) {
+    public String getWechatConfig(String appid, String secret, String pageUrl) {
         long now = System.currentTimeMillis();
 
         if (now > jsapi_ticket_expire - 5 * 60 * 1000) {
             TreeMap<String, String> params = new TreeMap<>();
-            params.put("access_token", getWechatAccessToken(false));
+            params.put("access_token", getWechatAccessToken(appid, secret, false));
             params.put("type", "jsapi");
 
             try {
@@ -151,7 +128,7 @@ public class WechatProviderOfficial implements WechatProvider {
 
         String hashtext = HashHelperService.hash(code.getBytes(), "SHA1");
 
-        params.put("appId", getWechatAppid());
+        params.put("appId", appid);
         params.put("nonceStr", nonceStr);
         params.put("signature", hashtext);
         params.remove("jsapi_ticket");

@@ -51,7 +51,8 @@ public class WechatUserInfoUpdateService implements WechatMessageListener {
     public void updateWechatUserInfo() {
         wechatUserRepository.findAll().forEach(wechatUser -> {
             String openid = wechatUser.getOpenid();
-            WechatUser user = wechatService.getWechatUserInfo(openid);
+            String appid = wechatUser.getAppid();
+            WechatUser user = wechatService.getWechatUserInfo(appid, openid);
             if (user != null) {
                 if (user.getSubscribed()) {
                     wechatUser.setAvatar(user.getAvatar());

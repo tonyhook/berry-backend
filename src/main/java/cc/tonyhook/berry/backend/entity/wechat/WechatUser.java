@@ -11,6 +11,8 @@ public class WechatUser {
     @Id
     private String openid;
 
+    private String appid;
+
     private String avatar;
 
     private Integer gender;
@@ -29,6 +31,14 @@ public class WechatUser {
 
     public void setOpenid(String openid) {
         this.openid = openid;
+    }
+
+    public String getAppid() {
+        return this.appid;
+    }
+
+    public void setAppid(String appid) {
+        this.appid = appid;
     }
 
     public String getAvatar() {

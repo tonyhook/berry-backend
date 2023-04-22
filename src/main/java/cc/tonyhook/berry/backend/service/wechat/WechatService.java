@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
+import cc.tonyhook.berry.backend.dao.wechat.WechatAccountRepository;
+import cc.tonyhook.berry.backend.entity.wechat.WechatAccount;
 import cc.tonyhook.berry.backend.entity.wechat.WechatTemplateMessageData;
 import cc.tonyhook.berry.backend.entity.wechat.WechatUser;
 import cc.tonyhook.berry.backend.service.shared.ParameterStringBuilder;
@@ -30,32 +32,43 @@ public class WechatService {
     @Autowired
     private WechatProvider wechat;
 
+    @Autowired
+    private WechatAccountRepository wechatAccountRepository;
+
     private Map<Integer, String> wechatTagMap = null;
 
-    public String getWechatAppid() {
-        return wechat.getWechatAppid();
+    public String getWechatSecret(String appid) {
+        WechatAccount wechatAccount = wechatAccountRepository.findByAppid(appid);
+
+        if (wechatAccount != null) {
+            return wechatAccount.getSecret();
+        } else {
+            return null;
+        }
     }
 
-    public String getWechatSecret() {
-        return wechat.getWechatSecret();
+    public String getWechatMessageToken(String appid) {
+        WechatAccount wechatAccount = wechatAccountRepository.findByAppid(appid);
+
+        if (wechatAccount != null) {
+            return wechatAccount.getMessageToken();
+        } else {
+            return null;
+        }
     }
 
-    public String getWechatAccessToken(Boolean forceUpdate) {
-        return wechat.getWechatAccessToken(forceUpdate);
+    public String getWechatAccessToken(String appid, Boolean forceUpdate) {
+        return wechat.getWechatAccessToken(appid, getWechatSecret(appid), forceUpdate);
     }
 
-    public String getWechatConfig(String pageUrl) {
-        return wechat.getWechatConfig(pageUrl);
+    public String getWechatConfig(String appid, String pageUrl) {
+        return wechat.getWechatConfig(appid, getWechatSecret(appid), pageUrl);
     }
 
-    public String getWechatMessageToken() {
-        return wechat.getWechatMessageToken();
-    }
-
-    public WechatUser authWechatUserOAuth(String code) {
+    public WechatUser authWechatUserOAuth(String appid, String code) {
         TreeMap<String, String> params = new TreeMap<>();
-        params.put("appid", wechat.getWechatAppid());
-        params.put("secret", wechat.getWechatSecret());
+        params.put("appid", appid);
+        params.put("secret", getWechatSecret(appid));
         params.put("code", code);
         params.put("grant_type", "authorization_code");
 
@@ -81,6 +94,7 @@ public class WechatService {
             JsonNode token = mapper.readTree(content.toString());
             if (token.get("openid") != null) {
                 wechatUser.setOpenid(token.get("openid").asText());
+                wechatUser.setAppid(appid);
                 wechatUser.setScope(token.get("scope").asText());
                 access_token = token.get("access_token").asText();
 
@@ -132,10 +146,10 @@ public class WechatService {
         }
     }
 
-    public WechatUser authWechatUserJsCode(String code) {
+    public WechatUser authWechatUserJsCode(String appid, String code) {
         TreeMap<String, String> params = new TreeMap<>();
-        params.put("appid", wechat.getWechatAppid());
-        params.put("secret", wechat.getWechatSecret());
+        params.put("appid", appid);
+        params.put("secret", getWechatSecret(appid));
         params.put("js_code", code);
         params.put("grant_type", "authorization_code");
 
@@ -160,6 +174,7 @@ public class WechatService {
             JsonNode token = mapper.readTree(content.toString());
             if (token.get("openid") != null) {
                 wechatUser.setOpenid(token.get("openid").asText());
+                wechatUser.setAppid(appid);
                 if (token.get("unionid") != null) {
                     wechatUser.setUnionid(token.get("unionid").asText());
                 }
@@ -208,12 +223,12 @@ public class WechatService {
         return null;
     }
 
-    private JsonNode doWechatRequest(String method, String requestURL, String request) {
+    private JsonNode doWechatRequest(String appid, String method, String requestURL, String request) {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
             Integer retry = 0;
-            String accessToken = wechat.getWechatAccessToken(false);
+            String accessToken = wechat.getWechatAccessToken(appid, getWechatSecret(appid), false);
 
             while (retry < 3) {
                 String result = doWechatRequestOnce(method, requestURL + accessToken, request);
@@ -223,7 +238,7 @@ public class WechatService {
 
                     if (resultNode.get("errcode") != null) {
                         if (resultNode.get("errcode").asInt(-1) == 40001) {
-                            accessToken = wechat.getWechatAccessToken(true);
+                            accessToken = wechat.getWechatAccessToken(appid, getWechatSecret(appid), true);
                         } else {
                             return resultNode;
                         }
@@ -241,11 +256,11 @@ public class WechatService {
         return JsonNodeFactory.instance.objectNode();
     }
 
-    private JsonNode doWechatRequestMap(String method, String requestURL, Map<String, Object> requestMap) {
+    private JsonNode doWechatRequestMap(String appid, String method, String requestURL, Map<String, Object> requestMap) {
         try {
             ObjectMapper mapper = new ObjectMapper();
 
-            return doWechatRequest(method, requestURL, mapper.writeValueAsString(requestMap));
+            return doWechatRequest(appid, method, requestURL, mapper.writeValueAsString(requestMap));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -253,17 +268,17 @@ public class WechatService {
         return JsonNodeFactory.instance.objectNode();
     }
 
-    public Boolean addMultiWechatUserTag(List<String> openidList, String tag) {
-        Integer tagId = getWechatTag(tag);
+    public Boolean addMultiWechatUserTag(String appid, List<String> openidList, String tag) {
+        Integer tagId = getWechatTag(appid, tag);
         if (tagId < 0) {
-            tagId = createWechatTag(tag);
+            tagId = createWechatTag(appid, tag);
         }
 
         Map<String, Object> requestMap = new HashMap<String, Object>();
         requestMap.put("openid_list", openidList);
         requestMap.put("tagid", tagId);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/tags/members/batchtagging?access_token=",
                 requestMap);
 
@@ -278,8 +293,8 @@ public class WechatService {
         }
     }
 
-    public Boolean deleteMultiWechatUserTag(List<String> openidList, String tag) {
-        Integer tagId = getWechatTag(tag);
+    public Boolean deleteMultiWechatUserTag(String appid, List<String> openidList, String tag) {
+        Integer tagId = getWechatTag(appid, tag);
         if (tagId < 0) {
             return true;
         }
@@ -288,7 +303,7 @@ public class WechatService {
         requestMap.put("openid_list", openidList);
         requestMap.put("tagid", tagId);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/tags/members/batchuntagging?access_token=",
                 requestMap);
 
@@ -303,13 +318,13 @@ public class WechatService {
         }
     }
 
-    public Boolean addWechatUserTag(String openid, String tag) {
-        Integer tagId = getWechatTag(tag);
+    public Boolean addWechatUserTag(String appid, String openid, String tag) {
+        Integer tagId = getWechatTag(appid, tag);
         if (tagId < 0) {
-            tagId = createWechatTag(tag);
+            tagId = createWechatTag(appid, tag);
         }
 
-        List<String> tagList = getWechatUserTagList(openid);
+        List<String> tagList = getWechatUserTagList(appid, openid);
         if ((tagList != null) && tagList.contains(tag)) {
             return true;
         }
@@ -321,7 +336,7 @@ public class WechatService {
         requestMap.put("openid_list", openidList);
         requestMap.put("tagid", tagId);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/tags/members/batchtagging?access_token=",
                 requestMap);
 
@@ -336,8 +351,8 @@ public class WechatService {
         }
     }
 
-    public Boolean deleteWechatUserTag(String openid, String tag) {
-        Integer tagId = getWechatTag(tag);
+    public Boolean deleteWechatUserTag(String appid, String openid, String tag) {
+        Integer tagId = getWechatTag(appid, tag);
         if (tagId < 0) {
             return true;
         }
@@ -349,7 +364,7 @@ public class WechatService {
         requestMap.put("openid_list", openidList);
         requestMap.put("tagid", tagId);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/tags/members/batchuntagging?access_token=",
                 requestMap);
 
@@ -364,14 +379,14 @@ public class WechatService {
         }
     }
 
-    public WechatUser getWechatUserInfo(String openid) {
+    public WechatUser getWechatUserInfo(String appid, String openid) {
         String url = "https://api.weixin.qq.com/cgi-bin/user/info?";
         if (openid != null) {
             url = url + "openid=" + openid + "&&lang=zh_CN&";
         }
         url = url + "access_token=";
 
-        JsonNode response = doWechatRequest("GET", url, null);
+        JsonNode response = doWechatRequest(appid, "GET", url, null);
 
         if (response.get("errcode") != null) {
             if (response.get("errcode").asInt(-1) != 0) {
@@ -382,6 +397,7 @@ public class WechatService {
         } else {
             WechatUser wechatUser = new WechatUser();
             wechatUser.setOpenid(response.get("openid").asText());
+            wechatUser.setAppid(appid);
 
             if (response.get("subscribe").asInt(-1) == 1) {
                 wechatUser.setAvatar(response.get("headimgurl").asText());
@@ -399,8 +415,8 @@ public class WechatService {
         }
     }
 
-    public List<String> getWechatUserTagList(String openid) {
-        Map<Integer, String> tagMap = getWechatTagList();
+    public List<String> getWechatUserTagList(String appid, String openid) {
+        Map<Integer, String> tagMap = getWechatTagList(appid);
         if (tagMap == null) {
             return null;
         }
@@ -408,7 +424,7 @@ public class WechatService {
         Map<String, Object> requestMap = new HashMap<String, Object>();
         requestMap.put("openid", openid);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/tags/getidlist?access_token=",
                 requestMap);
 
@@ -432,12 +448,12 @@ public class WechatService {
         }
     }
 
-    public Map<Integer, String> getWechatTagList() {
+    public Map<Integer, String> getWechatTagList(String appid) {
         if (wechatTagMap != null) {
             return wechatTagMap;
         }
 
-        JsonNode response = doWechatRequest("GET",
+        JsonNode response = doWechatRequest(appid, "GET",
                 "https://api.weixin.qq.com/cgi-bin/tags/get?access_token=",
                 null);
 
@@ -461,8 +477,8 @@ public class WechatService {
         }
     }
 
-    public Map<String, String> getWechatTemplateList() {
-        JsonNode response = doWechatRequest("GET",
+    public Map<String, String> getWechatTemplateList(String appid) {
+        JsonNode response = doWechatRequest(appid, "GET",
                 "https://api.weixin.qq.com/cgi-bin/template/get_all_private_template?access_token=",
                 null);
 
@@ -486,10 +502,7 @@ public class WechatService {
         }
     }
 
-    public Boolean sendWechatTemplateMessage(String openid, String templateId,
-            String url,
-            String appid, String pagepath,
-            List<WechatTemplateMessageData> paramData) {
+    public Boolean sendWechatTemplateMessage(String appid, String openid, String templateId, String url, String pagepath, List<WechatTemplateMessageData> paramData) {
         Map<String, Map<String, Object>> tmplateData = new HashMap<String, Map<String, Object>>();
         for (WechatTemplateMessageData param : paramData) {
             Map<String, Object> paramMap = new HashMap<String, Object>();
@@ -516,7 +529,7 @@ public class WechatService {
         }
         requestMap.put("data", tmplateData);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=",
                 requestMap);
 
@@ -532,7 +545,7 @@ public class WechatService {
         return false;
     }
 
-    public Map<String, String> getWechatMaterialList(String type) {
+    public Map<String, String> getWechatMaterialList(String appid, String type) {
         Integer count = 1;
         Integer retry = 0;
         Integer offset = 0;
@@ -545,7 +558,7 @@ public class WechatService {
             requestMap.put("offset", offset);
             requestMap.put("count", 20);
 
-            JsonNode response = doWechatRequestMap("POST",
+            JsonNode response = doWechatRequestMap(appid, "POST",
                     "https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=",
                     requestMap);
 
@@ -573,7 +586,7 @@ public class WechatService {
         return templateMap;
     }
 
-    public Boolean sendWechatMaterialByTag(String mediaId, Integer tagId) {
+    public Boolean sendWechatMaterialByTag(String appid, String mediaId, Integer tagId) {
         Map<String, Object> filterMap = new HashMap<String, Object>();
         filterMap.put("is_to_all", false);
         filterMap.put("tag_id", tagId);
@@ -587,7 +600,7 @@ public class WechatService {
         requestMap.put("msgtype", "mpnews");
         requestMap.put("send_ignore_reprint", 0);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/message/mass/sendall?access_token=",
                 requestMap);
 
@@ -602,8 +615,8 @@ public class WechatService {
         }
     }
 
-    public Integer getWechatTag(String tag) {
-        Map<Integer, String> tagMap = getWechatTagList();
+    public Integer getWechatTag(String appid, String tag) {
+        Map<Integer, String> tagMap = getWechatTagList(appid);
         if (tagMap == null) {
             return -1;
         }
@@ -621,13 +634,13 @@ public class WechatService {
         return tagId;
     }
 
-    public Integer createWechatTag(String tag) {
+    public Integer createWechatTag(String appid, String tag) {
         Map<String, Object> tagMap = new HashMap<String, Object>();
         tagMap.put("name", tag);
         Map<String, Object> requestMap = new HashMap<String, Object>();
         requestMap.put("tag", tagMap);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/tags/create?access_token=",
                 requestMap);
 
@@ -649,8 +662,8 @@ public class WechatService {
         }
     }
 
-    public Boolean deleteWechatTag(String tag) {
-        Integer tagId = getWechatTag(tag);
+    public Boolean deleteWechatTag(String appid, String tag) {
+        Integer tagId = getWechatTag(appid, tag);
         if (tagId < 0) {
             return true;
         }
@@ -660,7 +673,7 @@ public class WechatService {
         Map<String, Object> requestMap = new HashMap<String, Object>();
         requestMap.put("tag", tagMap);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/tags/delete?access_token=",
                 requestMap);
 
@@ -680,7 +693,7 @@ public class WechatService {
         }
     }
 
-    public List<String> getWechatTagUserList(String tag) {
+    public List<String> getWechatTagUserList(String appid, String tag) {
         List<String> result = new ArrayList<String>();
         String openid = null;
         Integer count = 1;
@@ -689,11 +702,11 @@ public class WechatService {
         while ((count > 0) && (retry < 3)) {
 
             Map<String, Object> requestMap = new HashMap<String, Object>();
-            requestMap.put("tagid", getWechatTag(tag));
+            requestMap.put("tagid", getWechatTag(appid, tag));
             if (openid != null) {
                 requestMap.put("next_openid", openid);
             }
-            JsonNode response = doWechatRequestMap("POST",
+            JsonNode response = doWechatRequestMap(appid, "POST",
                     "https://api.weixin.qq.com/cgi-bin/user/tag/get?access_token=",
                     requestMap);
 
@@ -721,7 +734,7 @@ public class WechatService {
         return result;
     }
 
-    public List<String> getWechatUserList() {
+    public List<String> getWechatUserList(String appid) {
         List<String> result = new ArrayList<String>();
         String openid = null;
         Integer count = 1;
@@ -734,7 +747,7 @@ public class WechatService {
             }
             url = url + "access_token=";
 
-            JsonNode response = doWechatRequest("GET", url, null);
+            JsonNode response = doWechatRequest(appid, "GET", url, null);
 
             if (response.get("errcode") != null) {
                 retry++;
@@ -759,8 +772,8 @@ public class WechatService {
         return result;
     }
 
-    public String getMenu() {
-        JsonNode response = doWechatRequest("GET",
+    public String getMenu(String appid) {
+        JsonNode response = doWechatRequest(appid, "GET",
                 "https://api.weixin.qq.com/cgi-bin/menu/get?access_token=",
                 null);
 
@@ -773,8 +786,8 @@ public class WechatService {
         return response.toString();
     }
 
-    public Boolean setMenu(String menu) {
-        JsonNode response = doWechatRequest("POST",
+    public Boolean setMenu(String appid, String menu) {
+        JsonNode response = doWechatRequest(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=",
                 menu);
 
@@ -789,8 +802,8 @@ public class WechatService {
         }
     }
 
-    public Boolean addAdditionalMenu(String menu) {
-        JsonNode response = doWechatRequest("POST",
+    public Boolean addAdditionalMenu(String appid, String menu) {
+        JsonNode response = doWechatRequest(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/menu/addconditional?access_token=",
                 menu);
 
@@ -805,11 +818,11 @@ public class WechatService {
         }
     }
 
-    public Boolean deleteAdditionalMenu(Integer id) {
+    public Boolean deleteAdditionalMenu(String appid, Integer id) {
         Map<String, Object> requestMap = new HashMap<String, Object>();
         requestMap.put("menuid", id);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/menu/delconditional?access_token=",
                 requestMap);
 
@@ -824,11 +837,11 @@ public class WechatService {
         }
     }
 
-    public Boolean clearQuota() {
+    public Boolean clearQuota(String appid) {
         Map<String, Object> requestMap = new HashMap<String, Object>();
-        requestMap.put("appid", getWechatAppid());
+        requestMap.put("appid", appid);
 
-        JsonNode response = doWechatRequestMap("POST",
+        JsonNode response = doWechatRequestMap(appid, "POST",
                 "https://api.weixin.qq.com/cgi-bin/clear_quota?access_token=",
                 requestMap);
 
