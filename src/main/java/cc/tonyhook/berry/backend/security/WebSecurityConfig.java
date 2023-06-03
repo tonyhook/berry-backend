@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.provisioning.JdbcUserDetailsManagerConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
@@ -68,24 +69,24 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests()
-                .requestMatchers("/api/managed/**").authenticated()
-                .anyRequest().permitAll()
-            .and().formLogin()
-                .successHandler(authenticationSuccessHandler)
-                .failureHandler(authenticationFailureHandler)
-            .and().logout()
-                .logoutSuccessHandler(authenticationSuccessHandler)
-            .and().rememberMe()
-            .and().cors()
-            .and().csrf()
-                .ignoringRequestMatchers("/api/open/**")
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-            .and().exceptionHandling()
-                .accessDeniedHandler(accessDeniedHandler)
-                .authenticationEntryPoint(authenticationEntryPoint)
-            .and().addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
+        .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+            .requestMatchers("/api/managed/**").authenticated()
+            .anyRequest().permitAll())
+        .formLogin(formLogin -> formLogin
+            .successHandler(authenticationSuccessHandler)
+            .failureHandler(authenticationFailureHandler))
+        .logout(logout -> logout
+            .logoutSuccessHandler(authenticationSuccessHandler))
+        .rememberMe(withDefaults())
+        .cors(withDefaults())
+        .csrf(csrf -> csrf
+            .ignoringRequestMatchers("/api/open/**")
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+        .exceptionHandling(exceptionHandling -> exceptionHandling
+            .accessDeniedHandler(accessDeniedHandler)
+            .authenticationEntryPoint(authenticationEntryPoint))
+        .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
 
         return http.build();
     }
