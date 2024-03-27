@@ -12,5 +12,6 @@ public interface SmsProvider {
     public SmsOutboundLog send(String signature, String templateName, Map<String, Object> templateParam, String extend, String phone);
     public List<SmsInboundLog> receive();
     public SmsReport report(SmsOutboundLog outbound);
+    public void gather(SmsInboundLog log);
 
 }

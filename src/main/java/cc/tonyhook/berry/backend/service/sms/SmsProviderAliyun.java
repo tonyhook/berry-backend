@@ -14,17 +14,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import com.alicom.mns.tools.DefaultAlicomMessagePuller;
-import com.alicom.mns.tools.MessageListener;
 import com.aliyun.dysmsapi20170525.Client;
 import com.aliyun.dysmsapi20170525.models.QuerySendDetailsRequest;
 import com.aliyun.dysmsapi20170525.models.QuerySendDetailsResponse;
 import com.aliyun.dysmsapi20170525.models.QuerySendDetailsResponseBody.QuerySendDetailsResponseBodySmsSendDetailDTOsSmsSendDetailDTO;
 import com.aliyun.dysmsapi20170525.models.SendSmsRequest;
 import com.aliyun.dysmsapi20170525.models.SendSmsResponse;
-import com.aliyun.mns.model.Message;
 import com.aliyun.teaopenapi.models.Config;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cc.tonyhook.berry.backend.dao.sms.SmsOutboundLogRepository;
@@ -35,7 +31,7 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 @ConditionalOnProperty(prefix = "app.sms", name = "provider", havingValue = "aliyun")
-public class SmsProviderAliyun implements SmsProvider, MessageListener {
+public class SmsProviderAliyun implements SmsProvider {
 
     @Value("${app.sms.aliyun.access-key-id}")
     private String accessKeyId;
@@ -47,44 +43,14 @@ public class SmsProviderAliyun implements SmsProvider, MessageListener {
     @Autowired
     private SmsOutboundLogRepository smsOutboundLogRepository;
 
-    private DefaultAlicomMessagePuller puller;
     private LinkedList<SmsInboundLog> inboundQueue;
 
     @PostConstruct
     private void initialQueue() {
-        puller = new DefaultAlicomMessagePuller();
         inboundQueue = new LinkedList<SmsInboundLog>();
-
-        try {
-            puller.startReceiveMsg(accessKeyId, accessKeySecret, "SmsUp", queueName, this);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
-    public boolean dealMessage(Message message) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode response = mapper.readTree(message.getMessageBodyAsString());
-            SmsInboundLog log = new SmsInboundLog();
-            log.setProvider("Aliyun");
-            log.setReceiveTime(new Timestamp(System.currentTimeMillis()));
-            log.setPhone(response.get("phone_number").asText());
-            log.setExtend(response.get("dest_code").asText());
-            log.setMessage(response.get("content").asText());
-
-            synchronized (inboundQueue) {
-                inboundQueue.offer(log);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
     public SmsOutboundLog send(String signature, String templateName, Map<String, Object> templateParam, String extend, String phone) {
         try {
             Config config = new Config()
@@ -125,7 +91,8 @@ public class SmsProviderAliyun implements SmsProvider, MessageListener {
         }
     }
 
-    synchronized public List<SmsInboundLog> receive() {
+    @Override
+    public List<SmsInboundLog> receive() {
         List<SmsInboundLog> inboundList = new ArrayList<SmsInboundLog>();
 
         synchronized(inboundQueue) {
@@ -137,11 +104,12 @@ public class SmsProviderAliyun implements SmsProvider, MessageListener {
         return inboundList;
     }
 
+    @Override
     public SmsReport report(SmsOutboundLog outbound) {
         try {
-            Config config = new Config();
-            config.accessKeyId = accessKeyId;
-            config.accessKeySecret = accessKeySecret;
+            Config config = new Config()
+                    .setAccessKeyId(accessKeyId)
+                    .setAccessKeySecret(accessKeySecret);
             Client client = new Client(config);
 
             ZoneId zoneId = ZoneId.of("Asia/Shanghai");
@@ -187,6 +155,13 @@ public class SmsProviderAliyun implements SmsProvider, MessageListener {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    @Override
+    public void gather(SmsInboundLog log) {
+        synchronized (inboundQueue) {
+            inboundQueue.offer(log);
         }
     }
 

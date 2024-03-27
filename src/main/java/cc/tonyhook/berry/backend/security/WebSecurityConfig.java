@@ -1,5 +1,7 @@
 package cc.tonyhook.berry.backend.security;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import java.io.IOException;
 
 import javax.sql.DataSource;
@@ -10,7 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.provisioning.JdbcUserDetailsManagerConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import static org.springframework.security.config.Customizer.withDefaults;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.UserDetailsManager;
