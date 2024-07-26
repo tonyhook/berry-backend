@@ -4,12 +4,11 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.ListCrudRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import cc.tonyhook.berry.backend.entity.visitor.ProfileLog;
 
-public interface ProfileLogRepository extends ListCrudRepository<ProfileLog, Integer>, PagingAndSortingRepository<ProfileLog, Integer> {
+public interface ProfileLogRepository extends JpaRepository<ProfileLog, Integer> {
 
     ProfileLog findTopByOpenidAndResourceTypeOrderByUpdateTimeDesc(String openid, String resourceType);
     ProfileLog findTopByOpenidAndResourceTypeAndResourceIdOrderByUpdateTimeDesc(String openid, String resourceType, Integer resourceId);

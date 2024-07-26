@@ -2,14 +2,13 @@ package cc.tonyhook.berry.backend.dao.cms;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.ListCrudRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import cc.tonyhook.berry.backend.entity.cms.Gallery;
 import cc.tonyhook.berry.backend.entity.cms.Tag;
 import cc.tonyhook.berry.backend.entity.cms.Topic;
 
-public interface GalleryRepository extends ListCrudRepository<Gallery, Integer>, PagingAndSortingRepository<Gallery, Integer> {
+public interface GalleryRepository extends JpaRepository<Gallery, Integer> {
 
     Page<Gallery> findByType(String type, Pageable pageable);
     Page<Gallery> findByTypeAndDisabled(String type, Boolean disabled, Pageable pageable);

@@ -1,8 +1,8 @@
 package cc.tonyhook.berry.backend.service.wechat;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +17,8 @@ public class WechatSiteService {
     private WechatSiteRepository wechatSiteRepository;
 
     @PreAuthorize("hasAuthority('SOCIAL_MANAGEMENT')")
-    public Page<WechatSite> getWechatSiteList(Pageable pageable) {
-        Page<WechatSite> wechatSitePage = wechatSiteRepository.findAll(pageable);
+    public PagedModel<WechatSite> getWechatSiteList(Pageable pageable) {
+        PagedModel<WechatSite> wechatSitePage = new PagedModel<>(wechatSiteRepository.findAll(pageable));
 
         return wechatSitePage;
     }

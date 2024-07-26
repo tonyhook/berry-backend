@@ -11,12 +11,12 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -197,7 +197,7 @@ public class OpenVisitorController {
     }
 
     @RequestMapping(value = "/api/open/visitor/{openid}/profilelog", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<ProfileLog>> getProfileLogList(
+    public ResponseEntity<PagedModel<ProfileLog>> getProfileLogList(
             @PathVariable String openid,
             @RequestParam(defaultValue = "") String resourceType,
             @RequestParam(required = false) Integer resourceId,
@@ -210,7 +210,7 @@ public class OpenVisitorController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<ProfileLog> profileLogPage = profileLogService.getProfileLogList(openid, resourceType, resourceId, action, value, pageable);
+        PagedModel<ProfileLog> profileLogPage = profileLogService.getProfileLogList(openid, resourceType, resourceId, action, value, pageable);
 
         return ResponseEntity.ok().body(profileLogPage);
     }
@@ -241,7 +241,7 @@ public class OpenVisitorController {
 
     @SuppressWarnings("unchecked")
     @RequestMapping(value = "/api/open/visitor/{openid}/search", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public synchronized ResponseEntity<Page<ManagedResource>> search(
+    public synchronized ResponseEntity<PagedModel<ManagedResource>> search(
             @PathVariable String openid,
             @RequestParam(defaultValue = "") String resourceType,
             @RequestParam(defaultValue = "") String keywords,
@@ -250,7 +250,7 @@ public class OpenVisitorController {
         Pageable pageable = PageRequest.of(page, size);
 
         Object rawRepository = applicationContext.getBean(resourceType + "Repository");
-        ListCrudRepository<? extends ManagedResource, Integer> repository = (ListCrudRepository<? extends ManagedResource, Integer>) rawRepository;
+        JpaRepository<? extends ManagedResource, Integer> repository = (JpaRepository<? extends ManagedResource, Integer>) rawRepository;
 
         List<? extends ManagedResource> resourceList = repository.findAll();
         Set<Integer> resourceIdSet = new HashSet<Integer>();
@@ -267,7 +267,7 @@ public class OpenVisitorController {
         }
 
         matchedResourceList.sort((ManagedResource r1, ManagedResource r2) -> r2.getUpdateTime().compareTo(r1.getUpdateTime()));
-        Page<ManagedResource> resourcePage = new PageImpl<ManagedResource>(matchedResourceList, pageable, matchedResourceList.size());
+        PagedModel<ManagedResource> resourcePage = new PagedModel<>(new PageImpl<ManagedResource>(matchedResourceList, pageable, matchedResourceList.size()));
 
         SearchLog searchLog = searchLogService.getSearchLog(openid, resourceType, keywords);
         if (searchLog == null) {
@@ -286,14 +286,14 @@ public class OpenVisitorController {
     }
 
     @RequestMapping(value = "/api/open/visitor/{openid}/searchlog", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<String>> getSearchKeywordsList(
+    public ResponseEntity<PagedModel<String>> getSearchKeywordsList(
             @PathVariable String openid,
             @RequestParam(defaultValue = "") String resourceType,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<String> searchKeywordsPage = searchLogService.getSearchKeywordsList(openid, resourceType, pageable);
+        PagedModel<String> searchKeywordsPage = searchLogService.getSearchKeywordsList(openid, resourceType, pageable);
 
         return ResponseEntity.ok().body(searchKeywordsPage);
     }

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
 import cc.tonyhook.berry.backend.dao.wechat.WechatMessageRepository;
@@ -22,7 +22,7 @@ public class WechatMessageService {
 
     private List<WechatMessageListener> wechatMessageListenerList = new ArrayList<WechatMessageListener>();
 
-    public Page<WechatMessage> getWechatMessageList(Pageable pageable) {
+    public PagedModel<WechatMessage> getWechatMessageList(Pageable pageable) {
         Integer totalElements = Long.valueOf(wechatMessageRepository.count()).intValue();
         if (totalElements <= pageable.getPageSize() * pageable.getPageNumber()) {
             pageable = PageRequest.of(
@@ -31,7 +31,7 @@ public class WechatMessageService {
                     pageable.getSort());
         }
 
-        Page<WechatMessage> wechatMessagePage = wechatMessageRepository.findAll(pageable);
+        PagedModel<WechatMessage> wechatMessagePage = new PagedModel<>(wechatMessageRepository.findAll(pageable));
 
         return wechatMessagePage;
     }

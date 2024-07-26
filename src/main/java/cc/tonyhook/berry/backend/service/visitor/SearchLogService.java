@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
 import cc.tonyhook.berry.backend.dao.visitor.SearchLogRepository;
@@ -21,7 +21,7 @@ public class SearchLogService {
     @Autowired
     private SearchLogRepository searchLogRepository;
 
-    public Page<String> getSearchKeywordsList(String openid, String resourceType, Pageable pageable) {
+    public PagedModel<String> getSearchKeywordsList(String openid, String resourceType, Pageable pageable) {
         List<SearchLog> searchLogList = searchLogRepository.findByOpenidAndResourceTypeOrderByUpdateTimeDesc(openid, resourceType);
         Set<String> keywordsSet = new LinkedHashSet<String>();
 
@@ -31,7 +31,7 @@ public class SearchLogService {
             }
         }
 
-        Page<String> searchKeywordsPage = new PageImpl<String>(new ArrayList<String>(keywordsSet), pageable, keywordsSet.size());
+        PagedModel<String> searchKeywordsPage = new PagedModel<>(new PageImpl<String>(new ArrayList<String>(keywordsSet), pageable, keywordsSet.size()));
 
         return searchKeywordsPage;
     }

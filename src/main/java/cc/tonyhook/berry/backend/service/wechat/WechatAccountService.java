@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +26,8 @@ public class WechatAccountService {
     private WechatSiteRepository wechatSiteRepository;
 
     @PreAuthorize("hasAuthority('SOCIAL_MANAGEMENT')")
-    public Page<WechatAccount> getWechatAccountList(Pageable pageable) {
-        Page<WechatAccount> wechatAccountPage = wechatAccountRepository.findAll(pageable);
+    public PagedModel<WechatAccount> getWechatAccountList(Pageable pageable) {
+        PagedModel<WechatAccount> wechatAccountPage = new PagedModel<>(wechatAccountRepository.findAll(pageable));
 
         return wechatAccountPage;
     }

@@ -1,11 +1,10 @@
 package cc.tonyhook.berry.backend.dao.security;
 
-import org.springframework.data.repository.ListCrudRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import cc.tonyhook.berry.backend.entity.security.User;
 
-public interface UserRepository extends ListCrudRepository<User, Integer>, PagingAndSortingRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Integer> {
 
     User findByUsername(String username);
 

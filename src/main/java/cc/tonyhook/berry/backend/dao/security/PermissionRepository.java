@@ -2,12 +2,11 @@ package cc.tonyhook.berry.backend.dao.security;
 
 import java.util.List;
 
-import org.springframework.data.repository.ListCrudRepository;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import cc.tonyhook.berry.backend.entity.security.Permission;
 
-public interface PermissionRepository extends ListCrudRepository<Permission, Integer>, PagingAndSortingRepository<Permission, Integer> {
+public interface PermissionRepository extends JpaRepository<Permission, Integer> {
 
     List<Permission> findByResourceTypeAndResourceId(String resourceType, Integer resourceId);
     List<Permission> findByResourceTypeAndResourceIdIsNull(String resourceType);

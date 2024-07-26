@@ -3,9 +3,9 @@ package cc.tonyhook.berry.backend.service.visitor;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
 import cc.tonyhook.berry.backend.dao.visitor.VisitorRepository;
@@ -18,7 +18,7 @@ public class VisitorService {
     @Autowired
     private VisitorRepository visitorRepository;
 
-    public Page<Visitor> getVisitorList(Pageable pageable) {
+    public PagedModel<Visitor> getVisitorList(Pageable pageable) {
         Integer totalElements = Long.valueOf(visitorRepository.count()).intValue();
         if (totalElements <= pageable.getPageSize() * pageable.getPageNumber()) {
             pageable = PageRequest.of(
@@ -27,7 +27,7 @@ public class VisitorService {
                     pageable.getSort());
         }
 
-        Page<Visitor> visitorList = visitorRepository.findAll(pageable);
+        PagedModel<Visitor> visitorList = new PagedModel<>(visitorRepository.findAll(pageable));
 
         return visitorList;
     }

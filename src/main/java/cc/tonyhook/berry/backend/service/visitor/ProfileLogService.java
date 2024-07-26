@@ -10,9 +10,9 @@ import java.util.List;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
 import cc.tonyhook.berry.backend.dao.visitor.ProfileLogRepository;
@@ -26,21 +26,21 @@ public class ProfileLogService {
     @Autowired
     private ProfileLogRepository profileLogRepository;
 
-    public Page<ProfileLog> getProfileLogList(String openid, String resourceType, Integer resourceId, Integer action, String value, Pageable pageable) {
-        Page<ProfileLog> profileLogPage = null;
+    public PagedModel<ProfileLog> getProfileLogList(String openid, String resourceType, Integer resourceId, Integer action, String value, Pageable pageable) {
+        PagedModel<ProfileLog> profileLogPage = null;
 
         if (value == null) {
             if (resourceId == null && action == null) {
-                profileLogPage = profileLogRepository.findByOpenidAndResourceTypeOrderByUpdateTimeDesc(openid, resourceType, pageable);
+                profileLogPage = new PagedModel<>(profileLogRepository.findByOpenidAndResourceTypeOrderByUpdateTimeDesc(openid, resourceType, pageable));
             }
             if (resourceId == null && action != null) {
-                profileLogPage = profileLogRepository.findByOpenidAndResourceTypeAndActionOrderByUpdateTimeDesc(openid, resourceType, action, pageable);
+                profileLogPage = new PagedModel<>(profileLogRepository.findByOpenidAndResourceTypeAndActionOrderByUpdateTimeDesc(openid, resourceType, action, pageable));
             }
             if (resourceId != null && action == null) {
-                profileLogPage = profileLogRepository.findByOpenidAndResourceTypeAndResourceIdOrderByUpdateTimeDesc(openid, resourceType, resourceId, pageable);
+                profileLogPage = new PagedModel<>(profileLogRepository.findByOpenidAndResourceTypeAndResourceIdOrderByUpdateTimeDesc(openid, resourceType, resourceId, pageable));
             }
             if (resourceId != null && action != null) {
-                profileLogPage = profileLogRepository.findByOpenidAndResourceTypeAndResourceIdAndActionOrderByUpdateTimeDesc(openid, resourceType, resourceId, action, pageable);
+                profileLogPage = new PagedModel<>(profileLogRepository.findByOpenidAndResourceTypeAndResourceIdAndActionOrderByUpdateTimeDesc(openid, resourceType, resourceId, action, pageable));
             }
         } else {
             List<ProfileLog> profileLogList = getProfileLogList(openid, resourceType, resourceId, action);
@@ -111,7 +111,7 @@ public class ProfileLogService {
                 }
             }
 
-            profileLogPage = new PageImpl<ProfileLog>(profileLogList, pageable, profileLogList.size());
+            profileLogPage = new PagedModel<>(new PageImpl<ProfileLog>(profileLogList, pageable, profileLogList.size()));
         }
 
         return profileLogPage;

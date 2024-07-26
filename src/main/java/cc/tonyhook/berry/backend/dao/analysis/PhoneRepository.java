@@ -1,9 +1,9 @@
 package cc.tonyhook.berry.backend.dao.analysis;
 
-import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import cc.tonyhook.berry.backend.entity.analysis.Phone;
 
-public interface PhoneRepository extends ListCrudRepository<Phone, Integer> {
+public interface PhoneRepository extends JpaRepository<Phone, Integer> {
 
 }

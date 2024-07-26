@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -188,7 +188,7 @@ public class OpenCmsController {
     }
 
     @RequestMapping(value = "/api/open/content", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Content>> getContentList(
+    public ResponseEntity<PagedModel<Content>> getContentList(
             @RequestParam(defaultValue = "0") Integer columnId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -209,7 +209,7 @@ public class OpenCmsController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Content> contentPage = contentService.getContentList(column, false, pageable);
+        PagedModel<Content> contentPage = contentService.getContentList(column, false, pageable);
 
         if (contentPage != null) {
             return ResponseEntity.ok().body(contentPage);
@@ -231,7 +231,7 @@ public class OpenCmsController {
     }
 
     @RequestMapping(value = "/api/open/gallery/type", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Gallery>> getGalleryListByType(
+    public ResponseEntity<PagedModel<Gallery>> getGalleryListByType(
             @RequestParam(defaultValue = "") String type,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -240,13 +240,13 @@ public class OpenCmsController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Gallery> galleryPage = galleryService.getGalleryList(type, false, pageable);
+        PagedModel<Gallery> galleryPage = galleryService.getGalleryList(type, false, pageable);
 
         return ResponseEntity.ok().body(galleryPage);
     }
 
     @RequestMapping(value = "/api/open/gallery/tag", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Gallery>> getGalleryListByTag(
+    public ResponseEntity<PagedModel<Gallery>> getGalleryListByTag(
             @RequestParam(defaultValue = "0") Integer tagId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -260,13 +260,13 @@ public class OpenCmsController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Gallery> galleryPage = galleryService.getGalleryList(tag, false, pageable);
+        PagedModel<Gallery> galleryPage = galleryService.getGalleryList(tag, false, pageable);
 
         return ResponseEntity.ok().body(galleryPage);
     }
 
     @RequestMapping(value = "/api/open/gallery/topic", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Gallery>> getGalleryListByTopic(
+    public ResponseEntity<PagedModel<Gallery>> getGalleryListByTopic(
             @RequestParam(defaultValue = "0") Integer topicId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -280,7 +280,7 @@ public class OpenCmsController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Gallery> galleryPage = galleryService.getGalleryList(topic, false, pageable);
+        PagedModel<Gallery> galleryPage = galleryService.getGalleryList(topic, false, pageable);
 
         return ResponseEntity.ok().body(galleryPage);
     }
@@ -345,7 +345,7 @@ public class OpenCmsController {
     }
 
     @RequestMapping(value = "/api/open/tag/type", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Tag>> getTagListByType(
+    public ResponseEntity<PagedModel<Tag>> getTagListByType(
             @RequestParam(defaultValue = "") String type,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -354,7 +354,7 @@ public class OpenCmsController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Tag> tagPage = tagService.getTagList(type, false, pageable);
+        PagedModel<Tag> tagPage = tagService.getTagList(type, false, pageable);
 
         return ResponseEntity.ok().body(tagPage);
     }
@@ -372,7 +372,7 @@ public class OpenCmsController {
     }
 
     @RequestMapping(value = "/api/open/topic/type", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Topic>> getTopicListByType(
+    public ResponseEntity<PagedModel<Topic>> getTopicListByType(
             @RequestParam(defaultValue = "") String type,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -381,7 +381,7 @@ public class OpenCmsController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Topic> topicPage = topicService.getTopicList(type, false, pageable);
+        PagedModel<Topic> topicPage = topicService.getTopicList(type, false, pageable);
 
         return ResponseEntity.ok().body(topicPage);
     }

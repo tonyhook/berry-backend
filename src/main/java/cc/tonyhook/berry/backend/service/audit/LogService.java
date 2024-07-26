@@ -6,9 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +23,7 @@ public class LogService {
     private LogRepository logRepository;
 
     @PreAuthorize("hasAuthority('AUDIT_MANAGEMENT')")
-    public Page<Log> getLogList(String start, String end, Pageable pageable) {
+    public PagedModel<Log> getLogList(String start, String end, Pageable pageable) {
         Integer totalElements = Long.valueOf(logRepository.count()).intValue();
         if (totalElements <= pageable.getPageSize() * pageable.getPageNumber()) {
             pageable = PageRequest.of(
@@ -32,20 +32,20 @@ public class LogService {
                     pageable.getSort());
         }
 
-        Page<Log> logPage;
+        PagedModel<Log> logPage;
         if ((start.length() > 0) && (end.length() > 0)) {
             try {
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
-                logPage = logRepository.findByCreateTimeBetween(
+                logPage = new PagedModel<>(logRepository.findByCreateTimeBetween(
                         new Timestamp(df.parse(start).getTime()),
                         new Timestamp(df.parse(end).getTime()),
-                        pageable);
+                        pageable));
             } catch (ParseException e) {
-                logPage = logRepository.findAll(pageable);
+                logPage = new PagedModel<>(logRepository.findAll(pageable));
             }
         } else {
-            logPage = logRepository.findAll(pageable);
+            logPage = new PagedModel<>(logRepository.findAll(pageable));
         }
 
         return logPage;

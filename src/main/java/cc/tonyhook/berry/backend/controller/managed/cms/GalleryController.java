@@ -10,10 +10,10 @@ import java.util.Set;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,7 +43,7 @@ public class GalleryController {
     private FileUploadService fileUploadService;
 
     @RequestMapping(value = "/api/managed/gallery/type", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Gallery>> getGalleryListByType(
+    public ResponseEntity<PagedModel<Gallery>> getGalleryListByType(
             @RequestParam(defaultValue = "") String type,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -52,13 +52,13 @@ public class GalleryController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Gallery> galleryPage = galleryService.getGalleryList(type, pageable);
+        PagedModel<Gallery> galleryPage = galleryService.getGalleryList(type, pageable);
 
         return ResponseEntity.ok().body(galleryPage);
     }
 
     @RequestMapping(value = "/api/managed/gallery/tag", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Gallery>> getGalleryListByTag(
+    public ResponseEntity<PagedModel<Gallery>> getGalleryListByTag(
             @RequestParam(defaultValue = "0") Integer tagId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -72,13 +72,13 @@ public class GalleryController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Gallery> galleryPage = galleryService.getGalleryList(tag, pageable);
+        PagedModel<Gallery> galleryPage = galleryService.getGalleryList(tag, pageable);
 
         return ResponseEntity.ok().body(galleryPage);
     }
 
     @RequestMapping(value = "/api/managed/gallery/topic", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Gallery>> getGalleryListByTopic(
+    public ResponseEntity<PagedModel<Gallery>> getGalleryListByTopic(
             @RequestParam(defaultValue = "0") Integer topicId,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -92,7 +92,7 @@ public class GalleryController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Gallery> galleryPage = galleryService.getGalleryList(topic, pageable);
+        PagedModel<Gallery> galleryPage = galleryService.getGalleryList(topic, pageable);
 
         return ResponseEntity.ok().body(galleryPage);
     }

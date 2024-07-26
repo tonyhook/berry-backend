@@ -3,9 +3,9 @@ package cc.tonyhook.berry.backend.service.security;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +27,7 @@ public class RoleService {
     private UserRepository userRepository;
 
     @PreAuthorize("hasAuthority('SECURITY_MANAGEMENT')")
-    public Page<Role> getRoleList(Pageable pageable) {
+    public PagedModel<Role> getRoleList(Pageable pageable) {
         Integer totalElements = Long.valueOf(roleRepository.count()).intValue();
         if (totalElements <= pageable.getPageSize() * pageable.getPageNumber()) {
             pageable = PageRequest.of(
@@ -36,7 +36,7 @@ public class RoleService {
                     pageable.getSort());
         }
 
-        Page<Role> rolePage = roleRepository.findAll(pageable);
+        PagedModel<Role> rolePage = new PagedModel<>(roleRepository.findAll(pageable));
 
         return rolePage;
     }

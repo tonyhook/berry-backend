@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -86,7 +86,7 @@ public class PermissionController {
     }
 
     @RequestMapping(value = "/api/managed/permission", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Permission>> getPermissionList(
+    public ResponseEntity<PagedModel<Permission>> getPermissionList(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(defaultValue = "id") String sort,
@@ -94,7 +94,7 @@ public class PermissionController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Permission> permissionPage = permissionService.getPermissionList(pageable);
+        PagedModel<Permission> permissionPage = permissionService.getPermissionList(pageable);
 
         return ResponseEntity.ok().body(permissionPage);
     }

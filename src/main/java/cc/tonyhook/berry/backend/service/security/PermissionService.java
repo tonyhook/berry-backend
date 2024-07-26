@@ -10,10 +10,10 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.web.PagedModel;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -200,7 +200,7 @@ public class PermissionService {
     }
 
     @PreAuthorize("hasAuthority('SECURITY_MANAGEMENT')")
-    public Page<Permission> getPermissionList(Pageable pageable) {
+    public PagedModel<Permission> getPermissionList(Pageable pageable) {
         Integer totalElements = Long.valueOf(permissionRepository.count()).intValue();
         if (totalElements <= pageable.getPageSize() * pageable.getPageNumber()) {
             pageable = PageRequest.of(
@@ -209,7 +209,7 @@ public class PermissionService {
                     pageable.getSort());
         }
 
-        Page<Permission> permissionPage = permissionRepository.findAll(pageable);
+        PagedModel<Permission> permissionPage = new PagedModel<>(permissionRepository.findAll(pageable));
 
         return permissionPage;
     }

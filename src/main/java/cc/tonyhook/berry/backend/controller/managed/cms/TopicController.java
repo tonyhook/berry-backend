@@ -10,10 +10,10 @@ import java.util.Set;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,7 +35,7 @@ public class TopicController {
     private FileUploadService fileUploadService;
 
     @RequestMapping(value = "/api/managed/topic/type", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<Topic>> getTopicList(
+    public ResponseEntity<PagedModel<Topic>> getTopicList(
             @RequestParam(defaultValue = "") String type,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -44,7 +44,7 @@ public class TopicController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<Topic> topicPage = topicService.getTopicList(type, pageable);
+        PagedModel<Topic> topicPage = topicService.getTopicList(type, pageable);
 
         return ResponseEntity.ok().body(topicPage);
     }

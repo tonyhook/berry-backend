@@ -3,9 +3,9 @@ package cc.tonyhook.berry.backend.service.wechat;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Service;
 
 import cc.tonyhook.berry.backend.dao.wechat.WechatUserRepository;
@@ -18,7 +18,7 @@ public class WechatUserService {
     @Autowired
     private WechatUserRepository wechatUserRepository;
 
-    public Page<WechatUser> getWechatUserList(Pageable pageable) {
+    public PagedModel<WechatUser> getWechatUserList(Pageable pageable) {
         Integer totalElements = Long.valueOf(wechatUserRepository.count()).intValue();
         if (totalElements <= pageable.getPageSize() * pageable.getPageNumber()) {
             pageable = PageRequest.of(
@@ -27,7 +27,7 @@ public class WechatUserService {
                     pageable.getSort());
         }
 
-        Page<WechatUser> wechatUserPage = wechatUserRepository.findAll(pageable);
+        PagedModel<WechatUser> wechatUserPage = new PagedModel<>(wechatUserRepository.findAll(pageable));
 
         return wechatUserPage;
     }

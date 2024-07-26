@@ -4,10 +4,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,7 +28,7 @@ public class UserController {
     private UserService userService;
 
     @RequestMapping(value = "/api/managed/user", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Page<User>> getUserList(
+    public ResponseEntity<PagedModel<User>> getUserList(
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(defaultValue = "id") String sort,
@@ -36,7 +36,7 @@ public class UserController {
         Direction direction = order.equals("desc") ? Direction.DESC : Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, direction, sort);
 
-        Page<User> userPage = userService.getUserList(pageable);
+        PagedModel<User> userPage = userService.getUserList(pageable);
 
         return ResponseEntity.ok().body(userPage);
     }

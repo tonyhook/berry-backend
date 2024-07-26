@@ -2,11 +2,11 @@ package cc.tonyhook.berry.backend.dao.cms;
 
 import java.util.List;
 
-import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import cc.tonyhook.berry.backend.entity.cms.Popup;
 
-public interface PopupRepository extends ListCrudRepository<Popup, Integer> {
+public interface PopupRepository extends JpaRepository<Popup, Integer> {
 
     List<Popup> findByListOrderBySequence(String list);
     List<Popup> findByListAndDisabledOrderBySequence(String list, Boolean disabled);

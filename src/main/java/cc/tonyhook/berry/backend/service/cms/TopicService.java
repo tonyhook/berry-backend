@@ -4,8 +4,8 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -30,14 +30,14 @@ public class TopicService {
         return topicList;
     }
 
-    public Page<Topic> getTopicList(String type, Pageable pageable) {
-        Page<Topic> topicPage = topicRepository.findByType(type, pageable);
+    public PagedModel<Topic> getTopicList(String type, Pageable pageable) {
+        PagedModel<Topic> topicPage = new PagedModel<>(topicRepository.findByType(type, pageable));
 
         return topicPage;
     }
 
-    public Page<Topic> getTopicList(String type, Boolean disabled, Pageable pageable) {
-        Page<Topic> topicPage = topicRepository.findByTypeAndDisabled(type, disabled, pageable);
+    public PagedModel<Topic> getTopicList(String type, Boolean disabled, Pageable pageable) {
+        PagedModel<Topic> topicPage = new PagedModel<>(topicRepository.findByTypeAndDisabled(type, disabled, pageable));
 
         return topicPage;
     }
